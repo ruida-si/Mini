@@ -6,13 +6,40 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 18:24:18 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/13 18:40:49 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/02/16 18:25:56 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../../minishell.h"
 
 void	swap_var(t_env *current, t_env *next, t_env **head);
+
+void	print_export(t_env	*head)
+{
+	int	i;
+
+	i = 0;
+	while (head)
+	{
+		i = ft_strlen(head->var) + 1;
+		if (!head->content)
+			printf("declare -x %s\n", head->var);
+		else
+			printf("declare -x %s=\"%s\"\n", head->var, head->content + i);
+		head = head->next;
+	}
+}
+
+t_env	*find_node(char *var, t_env *head)
+{
+	while (head)
+	{
+		if (ft_strcmp(var, head->var) == 0)
+			return (head);
+		head = head->next;
+	}
+	return (NULL);
+}
 
 void	append_node(char *var, char *content, t_env *head)
 {

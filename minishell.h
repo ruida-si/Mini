@@ -73,9 +73,12 @@ void	update_var(char *oldpwd, char *pwd, t_mini *mini);
 char	*expand_var(char *var, t_env *ev);
 
 t_env	*ft_last(t_env *head);
-void	append_node(char *var, char *content, t_env *head);
 
+void	append_node(char *var, char *content, t_env *head);
 void	order_var(t_mini *mini);
+t_env	*find_node(char *var, t_env *head);
+
+void	print_export(t_env *head);
 
 // CD FUNCTIONS
 void	exec_cd_point(t_token *token, t_mini *mini);

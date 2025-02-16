@@ -6,13 +6,12 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 18:37:34 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/15 21:11:45 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/02/16 18:45:44 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../../minishell.h"
 
-void	print_export(t_env *head);
 int		check_syntax(char *cmd);
 int		check_alpha(int	*i, char *cmd);
 void	create_export(char *var, char *content, t_mini *mini);
@@ -26,12 +25,12 @@ void	exec_export(t_token *token, t_mini *mini)
 	int		i;
 	int		j;
 
-	i = 0;	
+	i = 0;
 	order_var(mini);
 	if (!token->next)
 		print_export(mini->export);
-	/* else if (!check_syntax(mini->input + 7))
-		return ; */
+	else if (!check_syntax(mini->input + 7))
+		return ;
 	else
 	{
 		input = mini->input + 7;
@@ -123,6 +122,28 @@ void	export_one(char *input, int *i, int j, t_mini *mini)
 
 void	create_export(char *var, char *content, t_mini *mini)
 {
+	t_env	*export;
+	t_env	*env;
+	
+	export = find_node(var, mini->export);
+	env = find_node(var, mini->envp);
+	if (export)
+	{
+		if (content)
+		{
+			free(export->content);
+			export->content = content;
+			if (!env)
+				append_node(var, content, mini->envp);
+			else
+			{
+				/* if (env->content)
+					free(env->content); */
+				env->content = content;
+			}
+		}
+		return ;
+	}
 	append_node(var, content, mini->export);
 	if (content)
 		append_node(var, content, mini->envp);
@@ -135,6 +156,12 @@ int	check_syntax(char *cmd)
 	i = 0;
 	if (ft_isdigit(cmd[0]) || !check_alpha(&i, cmd))
 	{
+		if (i != 0)
+		{
+			while (cmd[i] != ' ' && i >= 0)
+				i--;
+			i++;
+		}
 		printf("minishell: export: `%s': not a valid identifier\n", cmd + i);
 		return (0);
 	}
@@ -143,28 +170,25 @@ int	check_syntax(char *cmd)
 
 int	check_alpha(int	*i, char *cmd)
 {
+	int	j;
+	
+	j = 1;
 	while (cmd[*i])
 	{
-		if (cmd[*i] != '=' && cmd[*i] != '\"' && cmd[*i] != ' '
-				&& !ft_isalnum(cmd[*i]))
-			return (0);
+		if (cmd[*i] == '=')
+		{
+			j *= -1;
+			(*i)++;
+		}
+		if (j == 1)
+		{
+			if (!cmd[*i])
+				break ;
+			if (cmd[*i] != '=' && cmd[*i] != '\"' && cmd[*i] != ' '
+					&& cmd[*i] != '\'' && !ft_isalnum(cmd[*i]))
+				return (0);
+		}
 		(*i)++;
 	}
 	return (1);
-}
-
-void	print_export(t_env *head)
-{
-	int	i;
-
-	i = 0;
-	while (head)
-	{
-		i = ft_strlen(head->var) + 1;
-		if (!head->content)
-			printf("declare -x %s\n", head->var);
-		else
-			printf("declare -x %s=\"%s\"\n", head->var, head->content + i);
-		head = head->next;
-	}
 }
