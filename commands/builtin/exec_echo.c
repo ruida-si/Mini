@@ -6,7 +6,7 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 14:12:54 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/15 18:35:07 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/03/01 14:53:24 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 char	*print_echo(char *input, int *i, char *var, t_mini *mini);
 void	echo_others(t_token *next, int i, t_mini *mini, char *input);
 void	echo_dollar(int *i, char *input, t_mini *mini);
+int		check_nl_echo(char *s);
 
 void	exec_echo(t_token *token, t_mini *mini)
 {
@@ -26,12 +27,23 @@ void	exec_echo(t_token *token, t_mini *mini)
 		printf("\n");
 	else if (ft_strcmp(next->cmd, "~") == 0)
 	{
-		content = expand_var("HOME", mini->envp);
+		content = getenv("HOME");
 		printf("%s\n", content);
-		free(content);
 	}
 	else
 		echo_others(next, 0, mini, mini->input + 5);
+}
+
+int	check_nl_echo(char *s)
+{
+	int	i;
+
+	i = 1;
+	while (s[i] == 'n')
+		i++;
+	if (s[i] && s[i] != ' ')
+		return (0);
+	return (i);
 }
 
 void	echo_others(t_token *next, int i, t_mini *mini, char *input)
@@ -39,16 +51,18 @@ void	echo_others(t_token *next, int i, t_mini *mini, char *input)
 	int	j;
 
 	j = 0;
-	if (ft_strcmp(next->cmd, "-n") == 0)
+	if (ft_strncmp(next->cmd, "-n", 2) == 0 && check_nl_echo(next->cmd))
 	{
-		input += 3;
-		j++;
+		j = check_nl_echo(next->cmd) + 1;
+		input += j;
 	}
 	while (input[i])
 	{
-		if (input[i] == '\"' || input[i] == '\'')
+		if (input[i] == '\"' || ((input[i -1] != '\"' && input[i +1] != '\"')
+				&& input[i] == '\''))
 			i++;
-		else if (input[i] == '$' && ft_isalnum(input[i + 1]))
+		else if (input[i -1] != '\'' && input[i] == '$'
+			&& ft_isalnum(input[i + 1]))
 			echo_dollar(&i, input, mini);
 		else
 		{
@@ -90,7 +104,7 @@ char	*print_echo(char *input, int *i, char *var, t_mini *mini)
 	while (ft_isalnum(var[j]))
 		j++;
 	var[j] = '\0';
-	s = expand_var(var, mini->envp);
+	s = expand_var(var, mini->export);
 	free(var);
 	if (s)
 	{

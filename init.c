@@ -8,7 +8,6 @@ t_mini init(char **envp)
     t_mini ms;
 
     ms.input = NULL;
-    ms.envp = get_envp(envp);
 	ms.export = get_envp(envp);
     ms.token = NULL;
 	ms.prompt = "\001\033[31m\002m\001\033[33m\002i\001\033[32m\002n\001\033[36m\002i\001\033[34m\002s\001\033[35m\002h\001\033[31m\002e\001\033[33m\002l\001\033[32m\002l\001\033[0m\002$ ";
@@ -17,6 +16,7 @@ t_mini init(char **envp)
     return (ms);
 }
 
+// creates double link list with env varb both var and content via malloc
 t_env	*get_envp(char **envp)
 {
 	t_env	*head;
@@ -32,6 +32,7 @@ t_env	*get_envp(char **envp)
 	return (head);
 }
 
+// creates string via malloc var name
 char	*get_var(char *s)
 {
 	int		i;
@@ -61,7 +62,7 @@ void	create_node(t_env **head, char *s)
 	node = malloc(sizeof(t_env));
 	if (!node)
 		return ;
-	node->content = s;
+	node->content = ft_strdup(s);
 	node->var = get_var(s);
 	node->next = NULL;
 	if (!(*head))

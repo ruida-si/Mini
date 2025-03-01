@@ -26,7 +26,6 @@ typedef struct s_mini
 {
 	char	*input;
 	char	*prompt;
-	t_env	*envp;
 	t_env	*export;
 	t_token	*token;
 	int exit_status;
@@ -67,6 +66,8 @@ typedef enum e_cmd_type {
 char	*get_new_cwd(char *buffer);
 void	free_pwd(char *oldpwd, char *pwd);
 
+void	free_2strings(char *var, char *arg);
+
 int		ft_strcmp(char *s1, char *s2);
 
 void	update_var(char *oldpwd, char *pwd, t_mini *mini);
@@ -79,6 +80,9 @@ void	order_var(t_mini *mini);
 t_env	*find_node(char *var, t_env *head);
 
 void	print_export(t_env *head);
+
+int		check_syntax(char *cmd);
+int		check_alpha(int	*i, char *cmd);
 
 // CD FUNCTIONS
 void	exec_cd_point(t_token *token, t_mini *mini);

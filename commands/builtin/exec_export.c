@@ -6,189 +6,180 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 18:37:34 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/16 18:45:44 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/03/01 19:06:55 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../../minishell.h"
 
-int		check_syntax(char *cmd);
-int		check_alpha(int	*i, char *cmd);
+// file export_3.c
+int		syntax_export(char *var, char *arg);
+int		check_quotes(char *input);
+int		count_char(char *input, char c);
+
+// file export_4.c
+char	*append_info_to_var(char *var, char *input, int *i, t_mini *mini);
+char	*get_2var(char *input, int i);
+char	*get_end_arg(char *input, int *i);
+void	count_till_char(char *input, int *i, char c);
+
 void	create_export(char *var, char *content, t_mini *mini);
-void	export_one(char *input, int *i, int j, t_mini *mini);
-void	export_two(char *input, int *i, int j, t_mini *mini);
-void	export_quotes(char *input, int *i, int j, t_mini *mini);
+int		parsing_export(char *input, t_mini *mini);
+
+char	*get_first_arg(char *input);
+char	*get_next_arg(char *input, t_mini *mini);
+char	*export_expand(char *input, t_mini *mini);
+char	*get_var_name(char *input, int *a, t_mini *mini);
 
 void	exec_export(t_token *token, t_mini *mini)
 {
 	char	*input;
 	int		i;
-	int		j;
 
 	i = 0;
 	order_var(mini);
 	if (!token->next)
 		print_export(mini->export);
-	else if (!check_syntax(mini->input + 7))
+	input = mini->input + 6;
+	if (!check_quotes(input))
+	{
+		printf("Not closed quotes\n");
 		return ;
+	}
+	while (*input)
+	{
+		while (*input == ' ')
+			input++;
+		i = parsing_export(input, mini);
+		if (i > (int)ft_strlen(input))
+			i = ft_strlen(input);
+		input += i;
+	}
+}
+
+int	parsing_export(char *input, t_mini *mini)
+{
+	int		i;
+	char	*end;
+	char	*var;
+	char	*arg;
+
+	arg = NULL;
+	i = 0;
+	end = "= ";
+	while (input[i] && !ft_strchr(end, input[i])
+		&& ft_strncmp(input + i, "+=", 2) != 0)
+	{
+		if (input[i] == '\'' || input[i] == '\"')
+			count_till_char(input, &i, input[i]);
+		i++;
+	}
+	var = get_2var(input, i);
+	if (ft_strncmp(input + i, "+=", 2) == 0)
+		arg = append_info_to_var(var, input, &i, mini);
+	else if (input[i] == '=')
+		arg = get_end_arg(input, &i);
+	if (arg)
+		arg = export_expand(arg, mini);
+	var = export_expand(var, mini);
+	if (syntax_export(var, arg))
+		create_export(var, arg, mini);
+	return (i + 1);
+}
+
+char	*export_expand(char *input, t_mini *mini)
+{
+	char	*temp;
+	
+	while (input)
+	{
+		temp = ft_strchr(input, '$');
+		if (!temp)
+			break ;
+		temp = input;
+		input = get_next_arg(input, mini);
+		free(temp);
+	}
+	return (input);
+}
+
+char	*get_next_arg(char *input, t_mini *mini)
+{
+	int		i;
+	char	*temp;
+	char	*beg;
+	char	*content;
+	char	*res;
+	char	*final;
+
+	i = 0;
+	temp = ft_strchr(input, '$');
+	beg = get_first_arg(input);
+	content = get_var_name(temp + 1, &i, mini);
+	if (content)
+	{
+		res = ft_strjoin(beg, content);
+		free_2strings(beg, content);
+		final = ft_strjoin(res, temp + i + 1);
+		free(res);
+	}
 	else
 	{
-		input = mini->input + 7;
-		while (input[i])
-		{
-			j = i;
-			while (input[i] && input[i] != '=' && input[i] != ' ')
-				i++;
-			if (!input[i] || input[i] == ' ')
-				export_one(input, &i, j, mini);
-			else if (input[i]  == '=')
-				export_two(input, &i, j, mini);
-		}			
+		final = ft_strjoin(beg, temp + i + 1);
+		free(beg);
 	}
+	return (final);
 }
 
-void	export_quotes(char *input, int *i, int j, t_mini *mini)
+// return var content with malloc
+char	*get_var_name(char *input, int *a, t_mini *mini)
 {
 	char	*var;
 	char	*content;
-	char	*temp;
-	int		a;
+	int		i;
 
-	a = 0;
-	var = ft_strdup(&input[j]);
-	while (var[a] && var[a] != '=')
-		a++;
-	var[a] = '\0';
-	content = ft_strdup(&input[*i]);
-	a = 0;
-	while (content[a] && content[a] != '\'' && content[a] != '\"')
-		a++;
-	content[a] = '\0';
-	temp = ft_strjoin("=", content);
-	free(content);
-	content = ft_strjoin(var, temp);
-	create_export(var, content, mini);	
-	while (input[*i] && input[*i] != '\'' && input[*i] != '\"')
-		(*i)++;
-	if (input[*i])
-		(*i)++;
-	if (input[*i])
-		(*i)++;
-}
-
-void	export_two(char *input, int *i, int j, t_mini *mini)
-{
-	char	*var;
-	char	*content;
-	int		a;
-
-	if (input[*i + 1] == '\'' || input[*i + 1] == '\"')
+	i = 0;
+	if (ft_isdigit(input[0]))
 	{
-		(*i) += 2;
-		export_quotes(input, i, j, mini);
-		return ;		
+		(*a)++;
+		if (input[0] == '0')
+			return (ft_strdup("minishell"));		
+		return (NULL);		
 	}
-	a = 0;
-	var = ft_strdup(&input[j]);
-	while (var[a] && var[a] != '=')
-		a++;
-	var[a] = '\0';
-	content = ft_strdup(&input[j]);
-	a = 0;
-	while (content[a] && content[a] != ' ')
-		a++;
-	content[a] = '\0';
-	create_export(var, content, mini);
-	while (input[*i] && input[*i] != ' ')
-		(*i)++;
-	if (input[*i])
-		(*i)++;		
+	var = ft_strdup(input);
+	while (ft_isalnum(var[i]))
+		i++;
+	var[i] = 0;
+	content = expand_var(var, mini->export);
+	free(var);
+	*a = i;
+	return (content);
 }
 
-void	export_one(char *input, int *i, int j, t_mini *mini)
+char	*get_first_arg(char *input)
 {
-	char	*var;
-	int		a;
+	char	*beg;
+	char	*temp;
 
-	a = 0;
-	var = ft_strdup(&input[j]);
-	while (var[a] && var[a] != ' ')
-		a++;		
-	var[a] = '\0';
-	create_export(var, NULL, mini);
-	if (input[*i])
-		(*i)++;	
+	beg = ft_strdup(input);
+	temp = ft_strchr(beg, '$');
+	temp[0] = '\0';
+	return (beg);
 }
 
 void	create_export(char *var, char *content, t_mini *mini)
 {
 	t_env	*export;
-	t_env	*env;
-	
+
 	export = find_node(var, mini->export);
-	env = find_node(var, mini->envp);
 	if (export)
 	{
 		if (content)
 		{
 			free(export->content);
 			export->content = content;
-			if (!env)
-				append_node(var, content, mini->envp);
-			else
-			{
-				/* if (env->content)
-					free(env->content); */
-				env->content = content;
-			}
 		}
 		return ;
 	}
 	append_node(var, content, mini->export);
-	if (content)
-		append_node(var, content, mini->envp);
-}
-
-int	check_syntax(char *cmd)
-{
-	int	i;
-
-	i = 0;
-	if (ft_isdigit(cmd[0]) || !check_alpha(&i, cmd))
-	{
-		if (i != 0)
-		{
-			while (cmd[i] != ' ' && i >= 0)
-				i--;
-			i++;
-		}
-		printf("minishell: export: `%s': not a valid identifier\n", cmd + i);
-		return (0);
-	}
-	return (1);
-}
-
-int	check_alpha(int	*i, char *cmd)
-{
-	int	j;
-	
-	j = 1;
-	while (cmd[*i])
-	{
-		if (cmd[*i] == '=')
-		{
-			j *= -1;
-			(*i)++;
-		}
-		if (j == 1)
-		{
-			if (!cmd[*i])
-				break ;
-			if (cmd[*i] != '=' && cmd[*i] != '\"' && cmd[*i] != ' '
-					&& cmd[*i] != '\'' && !ft_isalnum(cmd[*i]))
-				return (0);
-		}
-		(*i)++;
-	}
-	return (1);
 }

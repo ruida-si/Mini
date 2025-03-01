@@ -11,6 +11,7 @@ SRCS = main.c init.c lexer.c input.c parser.c valid_syntax.c executable.c \
 	   ./commands/builtin/exec_echo.c \
        ./commands/builtin/exec_exit.c ./commands/builtin/exec_env.c \
        ./commands/builtin/exec_export.c ./commands/builtin/export_utils.c \
+	   ./commands/builtin/export_3.c ./commands/builtin/export_4.c \
 	   ./commands/builtin/exec_pwd.c \
        ./commands/builtin/exec_unset.c handle_token.c free.c
 

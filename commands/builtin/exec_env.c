@@ -6,7 +6,7 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 18:38:34 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/13 18:39:35 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/03/01 14:48:29 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,16 @@ void	exec_env(t_token *token, t_mini *mini)
 	int		i;
 
 	i = 0;
-	ev = mini->envp;
+	ev = mini->export;
 	(void)token;
 	while (ev)
 	{
-		if (!ev->content)
-			printf("%s\n", ev->var);
-		else
+		if (ev->content)
+		{
 			printf("%s\n", ev->content);
+			i++;
+		}
 		ev = ev->next;
-		i++;
 	}
 	printf("%i\n", i);
 }

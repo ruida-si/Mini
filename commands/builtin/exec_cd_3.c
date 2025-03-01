@@ -6,7 +6,7 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 19:53:47 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/15 15:06:15 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/03/01 14:53:04 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	cd_dollar(t_token *next, t_mini *mini)
 			perror("getcwd failed");
 			return ;
 		}
-		pwd = expand_var("HOME", mini->envp);
+		pwd = expand_var("HOME", mini->export);
 		if (!pwd)
 		{
 			printf("minishell: cd: HOME not set\n");

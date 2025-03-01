@@ -6,7 +6,7 @@
 /*   By: ruida-si <ruida-si@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/05 16:21:07 by ruida-si          #+#    #+#             */
-/*   Updated: 2025/02/15 15:05:02 by ruida-si         ###   ########.fr       */
+/*   Updated: 2025/03/01 14:52:09 by ruida-si         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	exec_cd_1(t_token *token, t_mini *mini);
 
 void	exec_cd(t_token *token, t_mini *mini)
 {
-	t_token	*next;	
+	t_token	*next;
 
 	next = token->next;
 	if (list_size(token) > 2)
@@ -50,7 +50,7 @@ void	exec_cd_4(t_token *token, t_mini *mini)
 		perror("getcwd failed");
 		return ;
 	}
-	pwd = expand_var("OLDPWD", mini->envp);
+	pwd = expand_var("OLDPWD", mini->export);
 	if (!pwd)
 	{
 		printf("minishell: cd: OLDPWD not set\n");
@@ -125,7 +125,11 @@ void	exec_cd_1(t_token *token, t_mini *mini)
 	char	*oldpwd;
 	char	*home;
 
-	(void)token;
+	if (!token->next && !expand_var("HOME", mini->export))
+	{
+		printf("minishell: cd: HOME not set\n");
+		return ;
+	}
 	oldpwd = getcwd(NULL, 0);
 	if (!oldpwd)
 	{
@@ -133,12 +137,6 @@ void	exec_cd_1(t_token *token, t_mini *mini)
 		return ;
 	}
 	home = getenv("HOME");
-	if (!home)
-	{
-		printf("minishell: cd: HOME not set\n");
-		free(oldpwd);
-		return ;
-	}
 	if (chdir(home) == -1)
 	{
 		printf("minishell: cd: %s: %s\n", home, strerror(errno));
